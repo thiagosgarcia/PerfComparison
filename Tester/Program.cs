@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,99 +10,110 @@ namespace Tester
 {
     class Program
     {
+        static public int WarmLoop { get; set; } = 100;
+        static public int TestLopp { get; set; } = 10000;
+        static public int Concurrency { get; set; } = 10;
         static async Task Main(string[] args)
         {
             Console.WriteLine("Hi!");
-            Console.WriteLine(string.Join(", ", args));
-            if (args.Length < 3)
-                args = new[] { "net21", "net31", "net50" };
+            if (args.Length < 1)
+                args = new[] { "-n", "10000", "-c", "10", "net21", "net31", "net50" };
             Console.WriteLine(string.Join(", ", args));
 
-            Console.WriteLine($"Waiting 5s until everything is loaded");
-            Thread.Sleep(TimeSpan.FromSeconds(5));
+
+
+            args = ReadParams(args).ToArray();
+
+            Console.WriteLine($"Waiting 20s until everything is loaded");
+            Thread.Sleep(TimeSpan.FromSeconds(20));
             var results = new Dictionary<string, string>();
-            var warmLoop = 1000;
-            const int testLoop = 10000;
+            var st = new Stopwatch();
             foreach (var s in args)
             {
                 Console.WriteLine();
-                var st = new Stopwatch();
-                Console.WriteLine($"Warming up {s} with {warmLoop} iterations 2x");
-                st.Start();
-                await GetSync(s, warmLoop);
-                await GetAsync(s, warmLoop);
-                await GetSync(s, warmLoop);
-                await GetAsync(s, warmLoop);
-                st.Stop();
+                Console.WriteLine($"Warming up {s} with {WarmLoop} iterations");
+                st.Restart();
+                await GetSync(s);
                 Console.WriteLine($"{s} warm up finished in {st.ElapsedMilliseconds}ms");
-                st.Reset();
             }
 
-            warmLoop /= 10;
             foreach (var s in args)
             {
                 Console.WriteLine();
-                var st = new Stopwatch();
-                Console.WriteLine($"re-arming up {s} with {warmLoop} iterations");
-                st.Start();
-                await GetSync(s, warmLoop);
-                await GetAsync(s, warmLoop);
-                st.Stop();
-                Console.WriteLine($"{s} re-warm up finished in {st.ElapsedMilliseconds}ms");
-                st.Reset();
-
-                Console.WriteLine();
-                Console.WriteLine($"Starting fullSync run for {s} with {testLoop} iterations");
-                st.Start();
-                await GetSync(s, testLoop);
-                st.Stop();
+                Console.WriteLine($"Starting fullSync run for {s} with {TestLopp} iterations");
+                st.Restart();
+                await GetSync(s);
                 Console.WriteLine($"{s} fullSync run finished in {st.ElapsedMilliseconds}ms");
                 results.Add(s + "_fullSync", st.ElapsedMilliseconds.ToString());
-                st.Reset();
 
-                Console.WriteLine($"Starting fullAsync run for {s} with {testLoop} iterations");
-                st.Start();
-                await GetAsync(s, testLoop);
-                st.Stop();
+                Console.WriteLine($"Starting fullAsync run for {s} with {TestLopp} iterations");
+                st.Restart();
+                await GetAsync(s);
                 Console.WriteLine($"{s} fullAsync run finished in {st.ElapsedMilliseconds}ms");
                 results.Add(s + "_fullAsync", st.ElapsedMilliseconds.ToString());
-                st.Reset();
             }
 
             Console.WriteLine();
-            Console.WriteLine("Version\t Test\t\t Time\t\t TPS");
+            Console.WriteLine("Version\t Test\t\t Concurrency\t Time\t\t TPS");
             foreach (var result in results)
             {
-                double r = (double)long.Parse(result.Value) / (double) testLoop;
-                var tps = 1000 / r;
-                Console.WriteLine($"{result.Key.Split("_")[0]}\t {result.Key.Split("_")[1]}\t {result.Value}\t\t {tps}");
+                double r = (double)long.Parse(result.Value) / (double)TestLopp;
+                int tps = (int)(1000 / r);
+                Console.WriteLine($"{result.Key.Split("_")[0]}\t {result.Key.Split("_")[1]}\t {(result.Key.EndsWith("Async") ? Concurrency : 1)}\t\t {result.Value}\t\t {tps}");
             }
         }
 
-        private static Task GetAsync(string s, int loopVal) => Get(s, loopVal, "Async");
-        private static Task GetSync(string s, int loopVal) => Get(s, loopVal, "Sync");
-        private static async Task Get(string s, int loopVal, string ss)
+        private static IEnumerable<string> ReadParams(string[] args)
         {
-            var loop = 0;
+            for (var i = 0; i < args.Count(); i++)
+            {
+                switch (args[i])
+                {
+                    case "-n":
+                        TestLopp = int.Parse(args[++i]);
+                        continue;
+                    case "-c":
+                        Concurrency = int.Parse(args[++i]);
+                        continue;
+                    case { } a when a.StartsWith("net"):
+                        yield return args[i];
+                        continue;
+                    default:
+                        continue;
+                }
+            }
+        }
+
+        private static Task GetAsync(string s) => Get(s, "Async", Concurrency);
+        private static Task GetSync(string s) => Get(s, "Sync", 1);
+        private static async Task Get(string s, string ss, int concurrency)
+        {
+            int loopVal = TestLopp / concurrency;
             var factory = new HttpClientHandler()
             {
                 CheckCertificateRevocationList = false,
                 ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true
             };
 
-            var client = new HttpClient(factory)
-            {
-                //Timeout = TimeSpan.FromSeconds(1)
-            };
-
+            var tasks = new List<Task>();
             do
             {
-                var message = new HttpRequestMessage(HttpMethod.Get, $"https://{s}/Test/{ss}");
-                var r = await client.SendAsync(message);
-                if (!r.IsSuccessStatusCode)
-                    Console.WriteLine($"{s} failed with {loop} req left, with {r.StatusCode}");
+                for (var i = 0; i < concurrency; i++)
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        var client = new HttpClient(factory);
+                        var message = new HttpRequestMessage(HttpMethod.Get, $"https://{s}/Test/{ss}");
+                        var r = await client.SendAsync(message);
+                        if (!r.IsSuccessStatusCode)
+                            Console.WriteLine($"{s} failed with {loopVal} req left, with {r.StatusCode}");
+                    }));
+                }
 
-            } while (++loop < loopVal);
+                Task.WaitAll(tasks.ToArray());
+
+
+            } while (0 < --loopVal);
         }
     }
 }
