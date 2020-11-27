@@ -1,0 +1,73 @@
+version: '3.4'
+
+services:
+  net50:
+    image: ${DOCKER_REGISTRY-}net50
+    build:
+      context: .
+      dockerfile: net50/Dockerfile
+    ports:
+      - "10050:80"
+      - "50050:443"  
+    networks:
+      host:
+      perfnet:
+        aliases:
+          - net50
+    logging:
+      driver: none
+
+  net21:
+    image: ${DOCKER_REGISTRY-}net21
+    build:
+      context: .
+      dockerfile: net21/Dockerfile
+    ports:
+      - "10021:80"
+      - "50021:443"  
+    networks:
+      host:
+      perfnet:
+        aliases:
+          - net21
+    logging:
+      driver: none
+
+  net31:
+    image: ${DOCKER_REGISTRY-}net31
+    build:
+      context: .
+      dockerfile: net31/Dockerfile
+    ports:
+      - "10031:80"
+      - "50031:443"  
+    networks:
+      host:
+      perfnet:
+        aliases:
+          - net31
+    logging:
+      driver: none
+      
+  tester:
+    image: ${DOCKER_REGISTRY-}tester
+    build:
+      context: .
+      dockerfile: Tester/Dockerfile
+    environment:
+      - net21
+      - net31
+      - net50
+    networks:
+      host:
+      perfnet:
+        aliases:
+          - tester
+    depends_on:
+      - net50
+      - net21
+      - net31
+
+networks:
+  host:
+  perfnet:

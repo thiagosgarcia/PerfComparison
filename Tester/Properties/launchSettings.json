@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Tester": {
+      "commandName": "Project",
+      "commandLineArgs": "net21 net31 net50"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
