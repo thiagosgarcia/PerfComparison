@@ -13,6 +13,7 @@ namespace Tester
         static public int WarmLoop { get; set; } = 100;
         static public int TestLopp { get; set; } = 10000;
         static public int Concurrency { get; set; } = 10;
+        static public int Delay { get; set; } = 20;
         static async Task Main(string[] args)
         {
             Console.WriteLine("Hi!");
@@ -20,12 +21,10 @@ namespace Tester
                 args = new[] { "-n", "10000", "-c", "10", "net21", "net31", "net50" };
             Console.WriteLine(string.Join(", ", args));
 
-
-
             args = ReadParams(args).ToArray();
 
-            Console.WriteLine($"Waiting 20s until everything is loaded");
-            Thread.Sleep(TimeSpan.FromSeconds(20));
+            Console.WriteLine($"Waiting {Delay}s until everything is loaded");
+            Thread.Sleep(TimeSpan.FromSeconds(Delay));
             var results = new Dictionary<string, string>();
             var st = new Stopwatch();
             foreach (var s in args)
@@ -74,6 +73,9 @@ namespace Tester
                         continue;
                     case "-c":
                         Concurrency = int.Parse(args[++i]);
+                        continue;
+                    case "-d":
+                        Delay = int.Parse(args[++i]);
                         continue;
                     case { } a when a.StartsWith("net"):
                         yield return args[i];

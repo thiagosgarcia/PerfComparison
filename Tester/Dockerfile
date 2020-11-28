@@ -18,4 +18,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Tester.dll"]
-CMD ["net21", "net31", "net50", "-c", "20", "-n", "10000"]
+CMD ["net21", "net31", "net50", "-c", "20", "-n", "10000", "-d", "0"]
