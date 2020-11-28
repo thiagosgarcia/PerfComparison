@@ -9,13 +9,13 @@ COPY ["Tester/Tester.csproj", "Tester/"]
 RUN dotnet restore "Tester/Tester.csproj"
 COPY . .
 WORKDIR "/src/Tester"
-RUN dotnet build "Tester.csproj" -c Release -o /app/build
+#RUN dotnet build "Tester.csproj" -c Release -o /app/build --no-restore -v n
 
 FROM build AS publish
-RUN dotnet publish "Tester.csproj" -c Release -o /app/publish
+RUN dotnet publish "Tester.csproj" -c Release -o /app/publish -v n  --no-restore
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Tester.dll"]
-CMD ["net21", "net31", "net50", "-c", "20", "-n", "10000"]
+CMD ["net21", "net31", "net50", "-c", "20", "-n", "100", "-d", "0")]
