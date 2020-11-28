@@ -3,15 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net50", "net50\net50.csproj", "{D37CCFB1-D4C5-4B22-BC61-55346157885C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "net50", "net50\net50.csproj", "{D37CCFB1-D4C5-4B22-BC61-55346157885C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net31", "net31\net31.csproj", "{2C7445DC-B3BD-42B5-9C78-7BE81EF84BE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "net31", "net31\net31.csproj", "{2C7445DC-B3BD-42B5-9C78-7BE81EF84BE0}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{251FADD1-18D0-4EF6-BF60-ABCE68A1954F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net21", "net21\net21.csproj", "{28EC06C9-256C-48E9-BB7D-D8B0CE957FA0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "net21", "net21\net21.csproj", "{28EC06C9-256C-48E9-BB7D-D8B0CE957FA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tester", "Tester\Tester.csproj", "{B9CC27B1-17C4-440D-836A-25F5182FE57F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tester", "Tester\Tester.csproj", "{B9CC27B1-17C4-440D-836A-25F5182FE57F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ED74D76D-E243-423A-9B75-6A9372B21DC5}"
+	ProjectSection(SolutionItems) = preProject
+		ab.sh = ab.sh
+		docker-compose-ab.yml = docker-compose-ab.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
