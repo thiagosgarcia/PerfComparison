@@ -15,8 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tester", "Tester\Tester.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ED74D76D-E243-423A-9B75-6A9372B21DC5}"
 	ProjectSection(SolutionItems) = preProject
+		ab.ps1 = ab.ps1
 		ab.sh = ab.sh
 		docker-compose-ab.yml = docker-compose-ab.yml
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
